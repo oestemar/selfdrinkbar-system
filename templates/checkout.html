@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}精算 | Self Drink Bar{% endblock %}
+
+{% block content %}
+<h2>精算内容の確認</h2>
+
+<div class="checkout-items">
+    {% for item in cart_items %}
+        <div class="checkout-item">
+            <div>{{ item.name }}</div>
+            <div>{{ item.price }}円</div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="checkout-total">
+    合計: {{ total_price }}円
+</div>
+
+<a href="/cart" class="btn-back">カートに戻る</a>
+<a href="/payment_method" class="btn-next">決済方法へ</a>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}カート | Self Drink Bar{% endblock %}
+
+{% block content %}
+<h2>カート</h2>
+
+<div class="cart-items">
+    {% for item in cart_items %}
+        <div class="cart-item">
+            <div>{{ item.name }}</div>
+            <div>{{ item.price }}円</div>
+            <form action="/cart/remove" method="POST">
+                <input type="hidden" name="item_id" value="{{ item.id }}">
+                <button type="submit">削除</button>
+            </form>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="cart-total">
+    合計: {{ total_price }}円
+</div>
+
+<a href="/menu/coffee" class="btn-back">メニューに戻る</a>
+<a href="/checkout" class="btn-next">精算へ進む</a>
+{% endblock %}

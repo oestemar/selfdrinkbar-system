@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}完了 | Self Drink Bar{% endblock %}
+
+{% block content %}
+<h2>ご購入ありがとうございました！</h2>
+
+<p>5秒後にメニュー画面へ戻ります。</p>
+
+<script>
+    setTimeout(() => {
+        window.location.href = "/menu/coffee";
+    }, 5000);
+</script>
+{% endblock %}

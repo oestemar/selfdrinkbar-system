@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}商品編集{% endblock %}
+
+{% block content %}
+<h2>商品編集</h2>
+
+<form action="/admin/item_edit/{{ item.id }}" method="POST">
+    <label>商品名: <input type="text" name="name" value="{{ item.name }}" required></label><br>
+    <label>価格: <input type="number" name="price" value="{{ item.price }}" required></label><br>
+    <label>カテゴリ:
+        <select name="category">
+            <option value="coffee" {% if item.category=='coffee' %}selected{% endif %}>コーヒー</option>
+            <option value="tea" {% if item.category=='tea' %}selected{% endif %}>紅茶</option>
+            <option value="green_tea" {% if item.category=='green_tea' %}selected{% endif %}>緑茶</option>
+            <option value="softdrink" {% if item.category=='softdrink' %}selected{% endif %}>ソフトドリンク</option>
+        </select>
+    </label><br>
+    <button type="submit">更新</button>
+</form>
+{% endblock %}

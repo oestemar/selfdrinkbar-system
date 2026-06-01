@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}商品一覧{% endblock %}
+
+{% block content %}
+<h2>商品一覧</h2>
+
+<table>
+    <tr><th>ID</th><th>商品名</th><th>価格</th><th>カテゴリ</th><th>操作</th></tr>
+    {% for item in items %}
+    <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.name }}</td>
+        <td>{{ item.price }}</td>
+        <td>{{ item.category }}</td>
+        <td>
+            <a href="/admin/item_edit/{{ item.id }}">編集</a>
+            <form action="/admin/item_delete" method="POST" style="display:inline;">
+                <input type="hidden" name="item_id" value="{{ item.id }}">
+                <button type="submit">削除</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

@@ -4,19 +4,13 @@ import MySQLdb.cursors
 from datetime import datetime
 import hashlib
 import os
+from config import Config
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
-
-# MySQL設定
-app.config['MYSQL_HOST'] = os.environ.get('MYSQL_HOST', 'localhost')
-app.config['MYSQL_USER'] = os.environ.get('MYSQL_USER', 'root')
-app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', '')
-app.config['MYSQL_DB'] = os.environ.get('MYSQL_DB', 'selfdrinkbar')
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+app.config.from_object(Config)
+app.secret_key = app.config['SECRET_KEY']
 
 mysql = MySQL(app)
-
 
 # ==================== ユーティリティ関数 ====================
 def hash_password(password):

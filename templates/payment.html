@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}決済 | Self Drink Bar{% endblock %}
+
+{% block content %}
+<h2>決済処理中...</h2>
+
+<p>決済方法: {{ method }}</p>
+<p>合計金額: {{ total_price }}円</p>
+
+<form action="/payment/complete" method="POST">
+    <button type="submit" class="btn-next">決済を完了する</button>
+</form>
+
+<a href="/payment_method" class="btn-back">戻る</a>
+{% endblock %}

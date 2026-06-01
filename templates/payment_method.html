@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}決済方法 | Self Drink Bar{% endblock %}
+
+{% block content %}
+<h2>決済方法を選択</h2>
+
+<form action="/payment" method="POST">
+    <label>
+        <input type="radio" name="method" value="cash" required>
+        現金
+    </label>
+    <br>
+    <label>
+        <input type="radio" name="method" value="card">
+        クレジットカード
+    </label>
+    <br>
+    <label>
+        <input type="radio" name="method" value="pasmo">
+        PASMO（疑似決済）
+    </label>
+
+    <button type="submit" class="btn-next">決済へ進む</button>
+</form>
+
+<a href="/checkout" class="btn-back">戻る</a>
+{% endblock %}
