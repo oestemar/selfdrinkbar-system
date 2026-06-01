@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+
+# Flask instance folder
+instance/
+
+# Environment variables
+.env
+*.env
+.flaskenv
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+
+# SQLite DB（ローカル用）
+*.sqlite3
+*.db
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# Flask cache
+.cache/
