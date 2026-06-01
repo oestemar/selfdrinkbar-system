@@ -47,6 +47,7 @@ def menu_coffee():
         cursor.close()
         return render_template('menu_coffee.html', items=items)
     except Exception as e:
+        print(e)
         return jsonify({'error': str(e)}), 500
 
 
@@ -60,6 +61,7 @@ def menu_tea():
         cursor.close()
         return render_template('menu_tea.html', items=items)
     except Exception as e:
+        print(e)        
         return jsonify({'error': str(e)}), 500
 
 
@@ -73,6 +75,7 @@ def menu_green_tea():
         cursor.close()
         return render_template('menu_green_tea.html', items=items)
     except Exception as e:
+        print(e)
         return jsonify({'error': str(e)}), 500
 
 
@@ -86,6 +89,7 @@ def menu_softdrink():
         cursor.close()
         return render_template('menu_softdrink.html', items=items)
     except Exception as e:
+        print(e)        
         return jsonify({'error': str(e)}), 500
 
 
