@@ -5,6 +5,8 @@ from datetime import datetime
 import hashlib
 import os
 from config import Config
+from werkzeug.security import check_password_hash, generate_password_hash
+from functools import wraps
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -15,8 +17,7 @@ mysql = MySQL(app)
 # ==================== ユーティリティ関数 ====================
 def hash_password(password):
     """パスワードをハッシュ化"""
-    return hashlib.sha256(password.encode()).hexdigest()
-
+    return generate_password_hash(password)
 
 def admin_login_required(f):
     """管理者ログイン確認デコレータ"""
@@ -29,8 +30,19 @@ def admin_login_required(f):
         return f(*args, **kwargs)
     return decorated
 
+def admin_only(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if session.get('role') != 'admin':
+            return render_template('admin/admin_error.html', message="この操作は管理者のみ可能です")
+        return f(*args, **kwargs)
+    return wrapper
 
 # ==================== メニュー関連ルート ====================
+@app.route('/')
+def index():
+    return render_template('menu_coffee.html')
+
 @app.route('/menu/coffee', methods=['GET'])
 def menu_coffee():
     """コーヒーメニュー表示"""
@@ -41,8 +53,7 @@ def menu_coffee():
         cursor.close()
         return render_template('menu_coffee.html', items=items)
     except Exception as e:
-        print(e)
-        return jsonify({'error': str(e)}), 500
+        return render_template('error.html', message=str(e))
 
 
 @app.route('/menu/tea', methods=['GET'])
@@ -55,9 +66,7 @@ def menu_tea():
         cursor.close()
         return render_template('menu_tea.html', items=items)
     except Exception as e:
-        print(e)        
-        return jsonify({'error': str(e)}), 500
-
+        return render_template('error.html', message=str(e))
 
 @app.route('/menu/green_tea', methods=['GET'])
 def menu_green_tea():
@@ -69,8 +78,8 @@ def menu_green_tea():
         cursor.close()
         return render_template('menu_green_tea.html', items=items)
     except Exception as e:
-        print(e)
-        return jsonify({'error': str(e)}), 500
+        return render_template('error.html', message=str(e))
+
 
 
 @app.route('/menu/softdrink', methods=['GET'])
@@ -83,8 +92,7 @@ def menu_softdrink():
         cursor.close()
         return render_template('menu_softdrink.html', items=items)
     except Exception as e:
-        print(e)        
-        return jsonify({'error': str(e)}), 500
+        return render_template('error.html', message=str(e))
 
 
 # ==================== カート関連ルート ====================
@@ -100,57 +108,62 @@ def view_cart():
 def add_to_cart():
     """カートに商品を追加"""
     try:
-        data = request.get_json()
-        item_id = data.get('item_id')
-        quantity = data.get('quantity', 1)
+        item_id = request.form.get('item_id')
+        quantity = int(request.form.get('quantity', 1))
         
+        if not item_id:
+            return jsonify({'success': False, 'message': '商品IDがありません'}), 400        
+
         if 'cart' not in session:
             session['cart'] = []
-        
+
         # 既存のカート内容から商品を検索
         for item in session['cart']:
-            if item['id'] == item_id:
+            if str(item['id']) == str(item_id):
                 item['quantity'] += quantity
                 session.modified = True
-                return jsonify({'success': True, 'message': '商品数量を更新しました'})
+                return redirect('/cart')
         
         # 商品情報を取得
         cursor = mysql.connection.cursor()
         cursor.execute("SELECT id, name, price FROM items WHERE id = %s", (item_id,))
         product = cursor.fetchone()
         cursor.close()
+
+        if not product:
+            return jsonify({'success': False, 'message': '商品が見つかりません'}), 404
+
+
+        session['cart'].append({
+            'id': product['id'],
+            'name': product['name'],
+            'price': product['price'],
+            'quantity': quantity
+        })
+        session.modified = True
         
-        if product:
-            session['cart'].append({
-                'id': product['id'],
-                'name': product['name'],
-                'price': product['price'],
-                'quantity': quantity
-            })
-            session.modified = True
-            return jsonify({'success': True, 'message': '商品をカートに追加しました'})
-        
-        return jsonify({'success': False, 'message': '商品が見つかりません'}), 404
+        return redirect(url_for('view_cart'))
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return render_template('error.html', message=str(e))
 
 
 @app.route('/cart/remove', methods=['POST'])
 def remove_from_cart():
     """カートから商品を削除"""
     try:
-        data = request.get_json()
-        item_id = data.get('item_id')
+        item_id = request.form.get('item_id')
         
-        if 'cart' in session:
-            session['cart'] = [item for item in session['cart'] if item['id'] != item_id]
-            session.modified = True
-            return jsonify({'success': True, 'message': '商品をカートから削除しました'})
-        
-        return jsonify({'success': False, 'message': 'カートが空です'}), 400
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        if not item_id:
+            return "商品IDがありません", 400
 
+        if 'cart' in session:
+            session['cart'] = [item for item in session['cart'] if str(item['id']) != str(item_id)]
+            session.modified = True
+            return redirect(url_for('view_cart'))
+        
+        return "カートが空です", 400
+    except Exception as e:
+        return render_template('error.html', message=str(e))
 
 # ==================== 決済関連ルート ====================
 @app.route('/checkout', methods=['GET', 'POST'])
@@ -177,44 +190,46 @@ def payment_method():
 def payment():
     """決済処理（疑似）"""
     try:
-        data = request.get_json()
-        payment_method = data.get('payment_method')
+        payment_method = request.form.get('payment_method')
         
         # ここで決済処理を実装（疑似処理）
         # 実装例：
         # - クレジットカード: カード情報の検証
         # - 電子マネー: サービスとの連携
         # - 銀行振込: 振込情報の生成
-        
-        return jsonify({'success': True, 'message': '決済処理が完了しました'})
+        session['payment_method'] = payment_method
+        return redirect(url_for('payment_complete'))
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return render_template('error.html', message=str(e))
 
 
 @app.route('/payment/complete', methods=['POST'])
 def payment_complete():
     """決済完了"""
     try:
-        data = request.get_json()
         cart = session.get('cart', [])
-        total_price = data.get('total_price')
-        payment_method = data.get('payment_method')
+
+        if not cart:
+            return "カートが空です", 400
+
+        total_price = sum(item['price'] * item['quantity'] for item in cart)
+        payment_method = session.get('payment_method')
         
         # 購入履歴をDBに保存
         cursor = mysql.connection.cursor()
         
         # 注文テーブルに挿入
         cursor.execute("""
-            INSERT INTO orders (user_id, total_price, payment_method, created_at)
-            VALUES (%s, %s, %s, %s)
-        """, (session.get('user_id'), total_price, payment_method, datetime.now()))
+            INSERT INTO orders (total, payment_method, purchase_datetime)
+            VALUES (%s, %s, %s)
+        """, (total_price, payment_method, datetime.now()))
         
         order_id = cursor.lastrowid
         
         # 注文詳細テーブルに挿入
         for item in cart:
             cursor.execute("""
-                INSERT INTO order_details (order_id, item_id, quantity, price)
+                INSERT INTO order_details (ordered_id, item_id, quantity, price)
                 VALUES (%s, %s, %s, %s)
             """, (order_id, item['id'], item['quantity'], item['price']))
         
@@ -225,18 +240,21 @@ def payment_complete():
         session.pop('cart', None)
         session.modified = True
         
-        return jsonify({'success': True, 'order_id': order_id, 'message': '決済が完了しました'})
+        return redirect(url_for('payment_success'))
     except Exception as e:
         mysql.connection.rollback()
-        return jsonify({'error': str(e)}), 500
+        return render_template('error.html', message=str(e))
 
+@app.route('/payment/complete/success', methods=['GET'])
+def payment_success():
+    return render_template('payment_success.html')
 
 # ==================== 管理者ログイン ====================
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     """管理者ログイン"""
     if request.method == 'GET':
-        return render_template('admin_login.html')
+        return render_template('admin/login.html')
     else:
         username = request.form.get('username')
         password = request.form.get('password')
@@ -254,11 +272,11 @@ def admin_login():
                 session['admin_id'] = admin['id']
                 session['admin_name'] = admin['username']
                 session.modified = True
-                return redirect(url_for('admin_dashboard'))
+                return redirect(url_for('admin/dashboard'))
             else:
-                return render_template('admin_login.html', error='ユーザー名またはパスワードが間違っています')
+                return render_template('admin/login.html', message='ユーザー名またはパスワードが間違っています')
         except Exception as e:
-            return render_template('admin_login.html', error=str(e))
+            return render_template('admin/login.html', message=str(e))
 
 
 # ==================== 管理者ダッシュボード ====================
@@ -266,7 +284,7 @@ def admin_login():
 @admin_login_required
 def admin_dashboard():
     """管理者メニュー"""
-    return render_template('admin_dashboard.html')
+    return render_template('admin/dashboard.html')
 
 
 # ==================== 管理者・商品管理 ====================
@@ -296,9 +314,9 @@ def admin_items():
             items = cursor.fetchall()
             cursor.close()
             
-            return render_template('admin_items.html', items=items)
+            return render_template('admin/items.html', items=items)
         except Exception as e:
-            return render_template('admin_items.html', error=str(e))
+            return render_template('admin/error.html', message=str(e))
     else:
         # POST: 検索実行
         return redirect(url_for('admin_items', 
@@ -308,10 +326,11 @@ def admin_items():
 
 @app.route('/admin/register', methods=['GET', 'POST'])
 @admin_login_required
+@admin_only
 def admin_register():
     """商品登録"""
     if request.method == 'GET':
-        return render_template('admin_register.html')
+        return render_template('admin/register.html')
     else:
         try:
             name = request.form.get('name')
@@ -330,11 +349,11 @@ def admin_register():
             
             return redirect(url_for('admin_items'))
         except Exception as e:
-            return render_template('admin_register.html', error=str(e))
-
+            return render_template('admin/error.html', message=str(e))
 
 @app.route('/admin/item_edit/<int:item_id>', methods=['GET', 'POST'])
 @admin_login_required
+@admin_only
 def admin_item_edit(item_id):
     """商品編集"""
     try:
@@ -345,9 +364,9 @@ def admin_item_edit(item_id):
             cursor.close()
             
             if not item:
-                return render_template('error.html', message='商品が見つかりません'), 404
+                return render_template('admin/error.html', message='商品が見つかりません'), 404
             
-            return render_template('admin_item_edit.html', item=item)
+            return render_template('admin/item_edit.html', item=item)
         else:
             name = request.form.get('name')
             category = request.form.get('category')
@@ -365,11 +384,11 @@ def admin_item_edit(item_id):
             
             return redirect(url_for('admin_items'))
     except Exception as e:
-        return render_template('error.html', message=str(e))
-
+        return render_template('admin/error.html', message=str(e))
 
 @app.route('/admin/item_delete', methods=['POST'])
 @admin_login_required
+@admin_only
 def admin_item_delete():
     """商品削除"""
     try:
@@ -382,16 +401,16 @@ def admin_item_delete():
         
         return redirect(url_for('admin_items'))
     except Exception as e:
-        return render_template('error.html', message=str(e))
-
+        return render_template('admin/error.html', message=str(e))
 
 # ==================== 管理者・CSVインポート/エクスポート ====================
 @app.route('/admin/import_export', methods=['GET', 'POST'])
 @admin_login_required
+@admin_only
 def admin_import_export():
     """CSVインポート/エクスポート"""
     if request.method == 'GET':
-        return render_template('admin_import_export.html')
+        return render_template('admin/import_export.html')
     else:
         action = request.form.get('action')
         
@@ -410,7 +429,7 @@ def admin_import_export():
                 
                 return csv_data, 200, {'Content-Disposition': 'attachment; filename=items.csv'}
             except Exception as e:
-                return render_template('admin_import_export.html', error=str(e))
+                return render_template('admin/import_export.html', message=str(e))
         
         elif action == 'import':
             # インポート処理
@@ -424,7 +443,7 @@ def admin_import_export():
                     pass
                 return redirect(url_for('admin_import_export'))
             except Exception as e:
-                return render_template('admin_import_export.html', error=str(e))
+                return render_template('admin/error.html', message=str(e))
 
 
 # ==================== 管理者・購入履歴検索 ====================
@@ -432,76 +451,98 @@ def admin_import_export():
 @admin_login_required
 def admin_search_history():
     """購入履歴検索"""
-    if request.method == 'GET':
-        search_keyword = request.args.get('search', '')
+    search = request.args.get('search', '')
+    date = request.args.get('date', '')
         
-        try:
-            cursor = mysql.connection.cursor()
+    try:
+        cursor = mysql.connection.cursor()
+        
+        query = """
+            SELECT 
+                o.id AS id,
+                o.total AS total,
+                o.payment_method,
+                o.purchase_datetime,
+                d.item_id,
+                d.name AS name,
+                d.price AS price,
+                d.quantity
+            FROM orders o
+            LEFT JOIN order_details d ON o.id = d.ordered_id
+            WHERE 1=1
+        """
+        params = []
             
-            query = "SELECT * FROM orders WHERE 1=1"
-            params = []
-            
-            if search_keyword:
-                query += " AND (id LIKE %s OR user_id LIKE %s)"
-                params.extend([f"%{search_keyword}%", f"%{search_keyword}%"])
-            
-            cursor.execute(query, params)
-            orders = cursor.fetchall()
-            cursor.close()
-            
-            return render_template('admin_search_history.html', orders=orders)
-        except Exception as e:
-            return render_template('admin_search_history.html', error=str(e))
-    else:
-        return redirect(url_for('admin_search_history', search=request.form.get('search')))
+        # 注文ID・商品名・商品IDなどのキーワード検索
+        if search:
+            query += """
+                AND (
+                    o.id LIKE %s OR
+                    d.name LIKE %s OR
+                    d.item_id LIKE %s
+                )
+            """
+            params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
 
+        # 日付検索
+        if date:
+            query += " AND DATE(o.purchase_datetime) = %s"
+            params.append(date)
+
+        cursor.execute(query, params)
+        orders = cursor.fetchall()
+        cursor.close()
+            
+        return render_template(
+            'admin/search_history.html',
+            orders=orders,
+            search=search,
+            date=date
+        )
+    except Exception as e:
+        return render_template('admin/error.html', message=str(e))
 
 # ==================== 管理者・パスワード変更 ====================
 @app.route('/admin/password', methods=['GET', 'POST'])
 @admin_login_required
+@admin_only
 def admin_password():
     """パスワード変更"""
     if request.method == 'GET':
-        return render_template('admin_password.html')
+        return render_template('admin/password.html')
     else:
         try:
-            current_password = request.form.get('current_password')
-            new_password = request.form.get('new_password')
-            confirm_password = request.form.get('confirm_password')
+            current_password = request.form.get('current')
+            new_password = request.form.get('new')
+            confirm_password = request.form.get('confirm')
             
             if new_password != confirm_password:
-                return render_template('admin_password.html', error='新しいパスワードが一致しません')
+                return render_template('admin/password.html', error='新しいパスワードが一致しません')
             
             admin_id = session.get('admin_id')
             
             cursor = mysql.connection.cursor()
-            cursor.execute("SELECT password FROM admins WHERE id = %s", (admin_id,))
+            cursor.execute("SELECT password_hash FROM admins WHERE id = %s", (admin_id,))
             admin = cursor.fetchone()
             
-            if not admin or admin['password'] != hash_password(current_password):
+            if not admin or not check_password_hash(admin['password_hash'], current_password):
                 cursor.close()
-                return render_template('admin_password.html', error='現在のパスワードが正しくありません')
+                return render_template('admin/password.html', error='現在のパスワードが正しくありません')
             
             cursor.execute(
-                "UPDATE admins SET password = %s WHERE id = %s",
+                "UPDATE admins SET password_hash = %s WHERE id = %s",
                 (hash_password(new_password), admin_id)
             )
             
             mysql.connection.commit()
             cursor.close()
             
-            return render_template('admin_password.html', message='パスワードを変更しました')
+            return render_template('admin/password.html', message='パスワードを変更しました')
         except Exception as e:
-            return render_template('admin_password.html', error=str(e))
+            return render_template('admin/error.html', message=str(e))
 
 
 # ==================== その他のルート ====================
-@app.route('/')
-def index():
-    """ホームページ"""
-    return render_template('index.html')
-
-
 @app.route('/logout', methods=['POST'])
 def logout():
     """ログアウト"""
@@ -514,14 +555,14 @@ def logout():
 @app.errorhandler(404)
 def not_found(error):
     """404エラーハンドラ"""
-    return render_template('error.html', message='ページが見つかりません'), 404
+    return render_template('admin/error.html', message='ページが見つかりません'), 404
 
 
 @app.errorhandler(500)
 def internal_error(error):
     """500エラーハンドラ"""
     mysql.connection.rollback()
-    return render_template('error.html', message='サーバーエラーが発生しました'), 500
+    return render_template('admin/error.html', message='サーバーエラーが発生しました'), 500
 
 
 if __name__ == '__main__':

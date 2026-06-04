@@ -28,6 +28,10 @@
 
     <!-- ③ 中央メイン：メニュー（タブ切り替え） -->
     <main>
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
         {% block content %}{% endblock %}
     </main>
 

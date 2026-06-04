@@ -1,0 +1,34 @@
+<!-- templates/admin/admin_base.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}管理画面{% endblock %}</title>
+</head>
+<body>
+
+<header class="admin-header">
+    <h1>管理者メニュー</h1>
+    <nav>
+        <a href="/admin/items">商品管理</a>
+        <a href="/admin/search_history">購入履歴</a>
+        <a href="/admin/import_export">CSV</a>
+        <a href="/admin/password">パスワード変更</a>
+        <a href="/admin/logout">ログアウト</a>
+    </nav>
+</header>
+
+<main>
+    {% if message %}
+        <div class="message">{{ message }}</div>
+    {% endif %}
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</main>
+
+</body>
+</html>

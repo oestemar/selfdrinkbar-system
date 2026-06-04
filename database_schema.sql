@@ -6,9 +6,10 @@ USE selfdrinkbar;
 CREATE TABLE IF NOT EXISTS admins (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(64) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'admin',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    password_hash VARCHAR(255) NOT NULL
 );
 
 -- 商品テーブル
@@ -29,7 +30,7 @@ CREATE TABLE IF NOT EXISTS orders (
     total INT NOT NULL,
     payment_method VARCHAR(50),
     purchase_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_created_at (created_at)
+    INDEX idx_purchase_datetime (purchase_datetime)
 );
 
 -- 注文詳細テーブル

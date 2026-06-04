@@ -1,8 +1,23 @@
-{% extends "base.html" %}
+{% extends "admin/admin_base.html" %}
 {% block title %}商品一覧{% endblock %}
 
 {% block content %}
 <h2>商品一覧</h2>
+
+<!-- 検索フォーム -->
+<form action="/admin/items" method="POST">
+    <input type="text" name="search" placeholder="商品名で検索" value="{{ request.args.get('search', '') }}">
+    
+    <select name="category">
+        <option value="">すべて</option>
+        <option value="coffee" {% if request.args.get('category') == 'coffee' %}selected{% endif %}>コーヒー</option>
+        <option value="tea" {% if request.args.get('category') == 'tea' %}selected{% endif %}>紅茶</option>
+        <option value="green_tea" {% if request.args.get('category') == 'green_tea' %}selected{% endif %}>緑茶</option>
+        <option value="softdrink" {% if request.args.get('category') == 'softdrink' %}selected{% endif %}>ソフトドリンク</option>
+    </select>
+
+    <button type="submit">検索</button>
+</form>
 
 <table>
     <tr><th>ID</th><th>商品名</th><th>価格</th><th>カテゴリ</th><th>操作</th></tr>

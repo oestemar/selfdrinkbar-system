@@ -1,15 +1,21 @@
-{% extends "base.html" %}
+{% extends "admin/admin_base.html" %}
 {% block title %}CSV インポート / エクスポート{% endblock %}
 
 {% block content %}
 <h2>CSV インポート / エクスポート</h2>
 
 <h3>インポート</h3>
-<form action="/admin/import" method="POST" enctype="multipart/form-data">
-    <input type="file" name="csv_file" required>
+
+<form action="/admin/import_export" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="import">
+    <input type="file" name="file" required>
     <button type="submit">インポート</button>
 </form>
 
 <h3>エクスポート</h3>
-<a href="/admin/export" class="btn-next">CSV をダウンロード</a>
+<form action="/admin/import_export" method="POST">
+    <input type="hidden" name="action" value="export">
+    <button type="submit">CSV をダウンロード</button>
+</form>
+
 {% endblock %}

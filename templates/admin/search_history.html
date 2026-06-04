@@ -1,22 +1,33 @@
-{% extends "base.html" %}
+{% extends "admin/admin_base.html" %}
 {% block title %}購入履歴検索{% endblock %}
-
 {% block content %}
 <h2>購入履歴検索</h2>
 
 <form action="/admin/search_history" method="POST">
-    <label>日付: <input type="date" name="date"></label>
+    <input type="text" name="search" placeholder="注文ID / 商品名 / 商品ID" value="{{ search }}">
+    <input type="date" name="date" value="{{ date }}">
     <button type="submit">検索</button>
 </form>
 
 <table>
-    <tr><th>ID</th><th>日時</th><th>金額</th><th>決済方法</th></tr>
-    {% for order in orders %}
     <tr>
-        <td>{{ order.id }}</td>
-        <td>{{ order.created_at }}</td>
-        <td>{{ order.total_price }}</td>
-        <td>{{ order.payment_method }}</td>
+        <th>注文ID</th>
+        <th>日時</th>
+        <th>金額</th>
+        <th>決済方法</th>
+        <th>商品名</th>
+        <th>数量</th>
+        <th>価格</th>
+    </tr>
+    {% for row in orders %}
+    <tr>
+        <td>{{ row.id }}</td>
+        <td>{{ row.purchase_datetime }}</td>
+        <td>{{ row.total }}</td>
+        <td>{{ row.payment_method }}</td>
+        <td>{{ row.item_name }}</td>
+        <td>{{ row.quantity }}</td>
+        <td>{{ row.price }}</td>
     </tr>
     {% endfor %}
 </table>
