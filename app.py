@@ -1,12 +1,12 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 from datetime import datetime
-import hashlib
-import os
 from config import Config
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
+import io
+import csv
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -43,11 +43,17 @@ def admin_only(f):
 def index():
     return render_template('menu_coffee.html')
 
+@app.context_processor
+def inject_cart_count():
+    cart = session.get('cart', [])
+    cart_count = sum(item['quantity'] for item in cart)
+    return dict(cart_count=cart_count)
+
 @app.route('/menu/coffee', methods=['GET'])
 def menu_coffee():
     """コーヒーメニュー表示"""
     try:
-        cursor = mysql.connection.cursor()
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("SELECT * FROM items WHERE category = 'coffee'")
         items = cursor.fetchall()
         cursor.close()
@@ -55,12 +61,11 @@ def menu_coffee():
     except Exception as e:
         return render_template('error.html', message=str(e))
 
-
 @app.route('/menu/tea', methods=['GET'])
 def menu_tea():
     """紅茶メニュー表示"""
     try:
-        cursor = mysql.connection.cursor()
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("SELECT * FROM items WHERE category = 'tea'")
         items = cursor.fetchall()
         cursor.close()
@@ -72,7 +77,7 @@ def menu_tea():
 def menu_green_tea():
     """お茶メニュー表示"""
     try:
-        cursor = mysql.connection.cursor()
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("SELECT * FROM items WHERE category = 'green_tea'")
         items = cursor.fetchall()
         cursor.close()
@@ -86,7 +91,7 @@ def menu_green_tea():
 def menu_softdrink():
     """ソフトドリンクメニュー表示"""
     try:
-        cursor = mysql.connection.cursor()
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("SELECT * FROM items WHERE category = 'softdrink'")
         items = cursor.fetchall()
         cursor.close()
@@ -110,7 +115,7 @@ def add_to_cart():
     try:
         item_id = request.form.get('item_id')
         quantity = int(request.form.get('quantity', 1))
-        
+
         if not item_id:
             return jsonify({'success': False, 'message': '商品IDがありません'}), 400        
 
@@ -121,11 +126,12 @@ def add_to_cart():
         for item in session['cart']:
             if str(item['id']) == str(item_id):
                 item['quantity'] += quantity
+                item['subtotal'] = item['price'] * item['quantity']
                 session.modified = True
-                return redirect('/cart')
+                return jsonify({'success': True, 'cart_count': sum(i['quantity'] for i in session['cart'])})
         
         # 商品情報を取得
-        cursor = mysql.connection.cursor()
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("SELECT id, name, price FROM items WHERE id = %s", (item_id,))
         product = cursor.fetchone()
         cursor.close()
@@ -133,18 +139,18 @@ def add_to_cart():
         if not product:
             return jsonify({'success': False, 'message': '商品が見つかりません'}), 404
 
-
         session['cart'].append({
             'id': product['id'],
             'name': product['name'],
             'price': product['price'],
-            'quantity': quantity
+            'quantity': quantity,
+            'subtotal': product['price'] * quantity
         })
         session.modified = True
         
-        return redirect(url_for('view_cart'))
+        return jsonify({'success': True, 'cart_count': sum(i['quantity'] for i in session['cart'])})
     except Exception as e:
-        return render_template('error.html', message=str(e))
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @app.route('/cart/remove', methods=['POST'])
@@ -154,7 +160,7 @@ def remove_from_cart():
         item_id = request.form.get('item_id')
         
         if not item_id:
-            return "商品IDがありません", 400
+            return jsonify({'success': False, 'message': '商品IDがありません'}), 400
 
         if 'cart' in session:
             session['cart'] = [item for item in session['cart'] if str(item['id']) != str(item_id)]
@@ -216,7 +222,7 @@ def payment_complete():
         payment_method = session.get('payment_method')
         
         # 購入履歴をDBに保存
-        cursor = mysql.connection.cursor()
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         
         # 注文テーブルに挿入
         cursor.execute("""
@@ -258,21 +264,24 @@ def admin_login():
     else:
         username = request.form.get('username')
         password = request.form.get('password')
-        
+        print(username)
+        print(password)
         try:
-            cursor = mysql.connection.cursor()
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute(
-                "SELECT id, username FROM admins WHERE username = %s AND password = %s",
-                (username, hash_password(password))
+                "SELECT * FROM admins WHERE username = %s",
+                (username,)
             )
             admin = cursor.fetchone()
+            print(admin)
             cursor.close()
             
-            if admin:
+            if admin and check_password_hash(admin['password_hash'], password):
                 session['admin_id'] = admin['id']
                 session['admin_name'] = admin['username']
+                session['role'] = admin['role']
                 session.modified = True
-                return redirect(url_for('admin/dashboard'))
+                return redirect(url_for('admin_dashboard'))
             else:
                 return render_template('admin/login.html', message='ユーザー名またはパスワードが間違っています')
         except Exception as e:
@@ -297,7 +306,7 @@ def admin_items():
         category = request.args.get('category', '')
         
         try:
-            cursor = mysql.connection.cursor()
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             
             query = "SELECT * FROM items WHERE 1=1"
             params = []
@@ -316,7 +325,7 @@ def admin_items():
             
             return render_template('admin/items.html', items=items)
         except Exception as e:
-            return render_template('admin/error.html', message=str(e))
+            return render_template('admin/admin_error.html', message=str(e))
     else:
         # POST: 検索実行
         return redirect(url_for('admin_items', 
@@ -338,7 +347,7 @@ def admin_register():
             price = request.form.get('price')
             description = request.form.get('description')
             
-            cursor = mysql.connection.cursor()
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute("""
                 INSERT INTO items (name, category, price, description, created_at)
                 VALUES (%s, %s, %s, %s, %s)
@@ -349,7 +358,7 @@ def admin_register():
             
             return redirect(url_for('admin_items'))
         except Exception as e:
-            return render_template('admin/error.html', message=str(e))
+            return render_template('admin/admin_error.html', message=str(e))
 
 @app.route('/admin/item_edit/<int:item_id>', methods=['GET', 'POST'])
 @admin_login_required
@@ -358,7 +367,7 @@ def admin_item_edit(item_id):
     """商品編集"""
     try:
         if request.method == 'GET':
-            cursor = mysql.connection.cursor()
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute("SELECT * FROM items WHERE id = %s", (item_id,))
             item = cursor.fetchone()
             cursor.close()
@@ -373,7 +382,7 @@ def admin_item_edit(item_id):
             price = request.form.get('price')
             description = request.form.get('description')
             
-            cursor = mysql.connection.cursor()
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute("""
                 UPDATE items SET name = %s, category = %s, price = %s, description = %s
                 WHERE id = %s
@@ -384,7 +393,7 @@ def admin_item_edit(item_id):
             
             return redirect(url_for('admin_items'))
     except Exception as e:
-        return render_template('admin/error.html', message=str(e))
+        return render_template('admin/admin_error.html', message=str(e))
 
 @app.route('/admin/item_delete', methods=['POST'])
 @admin_login_required
@@ -401,7 +410,7 @@ def admin_item_delete():
         
         return redirect(url_for('admin_items'))
     except Exception as e:
-        return render_template('admin/error.html', message=str(e))
+        return render_template('admin/admin_error.html', message=str(e))
 
 # ==================== 管理者・CSVインポート/エクスポート ====================
 @app.route('/admin/import_export', methods=['GET', 'POST'])
@@ -427,23 +436,61 @@ def admin_import_export():
                 for item in items:
                     csv_data += f"{item['id']},{item['name']},{item['category']},{item['price']},{item['description']}\n"
                 
+                csv_data = '\ufeff' + csv_data  # UTF-8 BOMを追加
                 return csv_data, 200, {'Content-Disposition': 'attachment; filename=items.csv'}
             except Exception as e:
                 return render_template('admin/import_export.html', message=str(e))
         
         elif action == 'import':
-            # インポート処理
             try:
                 file = request.files.get('file')
-                if file:
-                    # CSVファイルを処理
-                    # 実装例：
-                    # - ファイルの検証
-                    # - データベースに挿入
-                    pass
+
+                if not file:
+                    return render_template('admin/admin_error.html', message="CSVファイルが選択されていません")
+
+                # ① items テーブルを初期化（全削除 + AUTO_INCREMENT リセット）
+                cursor = mysql.connection.cursor()
+                # items のみ全削除（履歴は残す）
+                cursor.execute("DELETE FROM items")
+                # AUTO_INCREMENT をリセット
+                cursor.execute("ALTER TABLE items AUTO_INCREMENT = 1")
+                mysql.connection.commit()
+
+                # CSV を UTF-8(BOM付き) で読み込む
+                stream = io.TextIOWrapper(file.stream, encoding='utf-8-sig')
+                reader = csv.reader(stream)
+
+                # 1行目（ヘッダー）をスキップ
+                header = next(reader, None)
+
+                imported_count = 0
+
+                for row in reader:
+                    # 空行スキップ
+                    if not row or len(row) < 4:
+                        continue
+
+                    name = row[0].strip()
+                    category = row[1].strip()
+                    price = int(row[2])
+                    description = row[3].strip()
+
+                    # INSERT
+                    cursor.execute("""
+                        INSERT INTO items (name, category, price, description)
+                        VALUES (%s, %s, %s, %s)
+                    """, (name, category, price, description))
+
+                    imported_count += 1
+
+                mysql.connection.commit()
+                cursor.close()
+
+                flash(f"{imported_count} 件のデータをインポートしました")
                 return redirect(url_for('admin_import_export'))
+
             except Exception as e:
-                return render_template('admin/error.html', message=str(e))
+                return render_template('admin/admin_error.html', message=str(e))
 
 
 # ==================== 管理者・購入履歴検索 ====================
@@ -455,7 +502,7 @@ def admin_search_history():
     date = request.args.get('date', '')
         
     try:
-        cursor = mysql.connection.cursor()
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         
         query = """
             SELECT 
@@ -500,7 +547,7 @@ def admin_search_history():
             date=date
         )
     except Exception as e:
-        return render_template('admin/error.html', message=str(e))
+        return render_template('admin/admin_error.html', message=str(e))
 
 # ==================== 管理者・パスワード変更 ====================
 @app.route('/admin/password', methods=['GET', 'POST'])
@@ -539,31 +586,47 @@ def admin_password():
             
             return render_template('admin/password.html', message='パスワードを変更しました')
         except Exception as e:
-            return render_template('admin/error.html', message=str(e))
+            return render_template('admin/admin_error.html', message=str(e))
 
 
 # ==================== その他のルート ====================
-@app.route('/logout', methods=['POST'])
-def logout():
+@app.route('/reset')
+def reset():
+    session.clear()
+    return "session cleared"
+
+@app.route('/admin/logout', methods=['GET'])
+def admin_logout():
     """ログアウト"""
     session.pop('admin_id', None)
     session.pop('admin_name', None)
+    session.pop('role', None)
     session.modified = True
-    return redirect(url_for('index'))
-
+    return redirect(url_for('admin_login'))
 
 @app.errorhandler(404)
 def not_found(error):
     """404エラーハンドラ"""
-    return render_template('admin/error.html', message='ページが見つかりません'), 404
+    return render_template('error.html', message='ページが見つかりません'), 404
 
+@app.errorhandler(404)
+def not_found(error):
+    if request.path.startswith('/admin'):
+        return render_template('admin/admin_error.html', message='ページが見つかりません'), 404
+    return render_template('error.html', message='ページが見つかりません'), 404
 
 @app.errorhandler(500)
 def internal_error(error):
     """500エラーハンドラ"""
     mysql.connection.rollback()
-    return render_template('admin/error.html', message='サーバーエラーが発生しました'), 500
+    return render_template('error.html', message='サーバーエラーが発生しました'), 500
 
+@app.errorhandler(500)
+def internal_error(error):
+    mysql.connection.rollback()
+    if request.path.startswith('/admin'):
+        return render_template('admin/admin_error.html', message='サーバーエラーが発生しました'), 500
+    return render_template('error.html', message='サーバーエラーが発生しました'), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

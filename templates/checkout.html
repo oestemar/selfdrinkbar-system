@@ -5,10 +5,13 @@
 <h2>精算内容の確認</h2>
 
 <div class="checkout-items">
-    {% for item in cart_items %}
+    {% for cart_item in cart %}
         <div class="checkout-item">
-            <div>{{ item.name }}</div>
-            <div>{{ item.price }}円</div>
+            <div>商品番号：{{ cart_item.id }}</div>
+            <div>商品名：{{ cart_item.name }}</div>
+            <div>金額：{{ cart_item.price }}円</div>
+            <div>数量：{{ cart_item.quantity }}</div>
+            <div>小計：{{ cart_item.subtotal }}円</div>
         </div>
     {% endfor %}
 </div>

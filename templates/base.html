@@ -11,7 +11,9 @@
     <header class="header">
         <div class="title">Self Drink Bar</div>
         <div class="cart">
-            <a href="/cart">🛒 カート (<span id="cart-count">{{ cart_count }}</span>)</a>
+            <a href="/cart">
+                🛒 (<span id="cart-count">{{ cart_count }}</span>)
+            </a>
         </div>
     </header>
 
@@ -34,7 +36,10 @@
 
         {% block content %}{% endblock %}
     </main>
-
+    <footer>
+        <a href="/admin/login">管理者ログイン</a>
+    </footer>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
 

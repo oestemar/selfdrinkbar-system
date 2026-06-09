@@ -15,17 +15,18 @@
     <div class="items">
         {% for item in items %}
             <div class="item">
+                <div class="item-id">商品番号：{{ item.id }}</div>
                 <div class="item-name">{{ item.name }}</div>
                 <div class="item-price">{{ item.price }}円</div>
-                <form action="/cart/add" method="POST">
-                    <input type="hidden" name="item_id" value="{{ item.id }}">
-                    <button type="submit">追加</button>
-                </form>
+                <div class="item-description">{{ item.description }}</div>
+                <button type="button" class="add-to-cart" data-id="{{ item.id }}">追加</button>
             </div>
         {% endfor %}
     </div>
 
 {% endblock %}
-</body>
-</html>
+{% block scripts %}
+    <script src="/static/js/cart.js"></script>
+{% endblock %}
+
 

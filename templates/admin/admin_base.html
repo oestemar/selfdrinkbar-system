@@ -9,14 +9,11 @@
 <body>
 
 <header class="admin-header">
-    <h1>管理者メニュー</h1>
-    <nav>
-        <a href="/admin/items">商品管理</a>
-        <a href="/admin/search_history">購入履歴</a>
-        <a href="/admin/import_export">CSV</a>
-        <a href="/admin/password">パスワード変更</a>
-        <a href="/admin/logout">ログアウト</a>
-    </nav>
+    {% if session.get('admin_id') %}
+        <div class="admin-info">
+            ログイン中：{{ session.get('admin_name') }}（{{ session.get('role') }}）
+        </div>
+    {% endif %}
 </header>
 
 <main>
@@ -29,6 +26,7 @@
 
     {% block content %}{% endblock %}
 </main>
+
 
 </body>
 </html>

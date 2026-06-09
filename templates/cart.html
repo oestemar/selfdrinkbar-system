@@ -5,12 +5,15 @@
 <h2>カート</h2>
 
 <div class="cart-items">
-    {% for item in cart_items %}
+    {% for cart_item in cart %}
         <div class="cart-item">
-            <div>{{ item.name }}</div>
-            <div>{{ item.price }}円</div>
+            <div>商品番号：{{ cart_item.id }}</div>
+            <div>商品名：{{ cart_item.name }}</div>
+            <div>金額：{{ cart_item.price }}円</div>
+            <div>数量：{{ cart_item.quantity }}</div>
+            <div>小計：{{ cart_item.subtotal }}円</div>
             <form action="/cart/remove" method="POST">
-                <input type="hidden" name="item_id" value="{{ item.id }}">
+                <input type="hidden" name="item_id" value="{{ cart_item.id }}">
                 <button type="submit">削除</button>
             </form>
         </div>
