@@ -13,21 +13,23 @@
     <tr>
         <th>注文ID</th>
         <th>日時</th>
-        <th>金額</th>
-        <th>決済方法</th>
         <th>商品名</th>
-        <th>数量</th>
+        <th>決済方法</th>
         <th>価格</th>
+        <th>数量</th>
+        <th>小計</th>
+        <th>税抜合計</th>
     </tr>
     {% for row in orders %}
     <tr>
         <td>{{ row.id }}</td>
         <td>{{ row.purchase_datetime }}</td>
-        <td>{{ row.total }}</td>
+        <td>{{ row.name }}</td>
         <td>{{ row.payment_method }}</td>
-        <td>{{ row.item_name }}</td>
-        <td>{{ row.quantity }}</td>
         <td>{{ row.price }}</td>
+        <td>{{ row.quantity }}</td>
+        <td>{{ row.subtotal }}</td>
+        <td>{{ row.total }}</td>
     </tr>
     {% endfor %}
 </table>

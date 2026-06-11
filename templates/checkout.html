@@ -17,7 +17,9 @@
 </div>
 
 <div class="checkout-total">
-    合計: {{ total_price }}円
+    税抜合計: {{ total_price }}円
+    消費税: {{ (total_price * 0.1) | round(0) | int}}円
+    税込合計: {{ (total_price * 1.1) | round(0) | int }}円
 </div>
 
 <a href="/cart" class="btn-back">カートに戻る</a>

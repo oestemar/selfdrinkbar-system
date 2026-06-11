@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}決済 | Self Drink Bar{% endblock %}
+
+{% block content %}
+<h2>決済（疑似）</h2>
+
+<div class="credit_info">
+    <p>クレジットカード決済を選択しました。</p>
+    <p>※ポートフォリオ用の疑似決済です。入力不要です。</p>
+
+    <form action="/payment/complete" method="POST">
+        <label for="card_number">カード番号:</label><br>
+        <input type="text" id="card_number" name="card_number" value="4242 4242 4242 4242" required readonly><br><br>
+        
+        <label for="expiry_date">有効期限:</label><br>
+        <input type="text" id="expiry_date" name="expiry_date" value="12/34" required readonly><br><br>
+
+        <label for="cvv">CVV:</label><br>
+        <input type="text" id="cvv" name="cvv" value="123" required readonly><br><br>
+
+        <button type="submit" class="btn-next">決済を完了する</button>
+</div>
+
+<div class="payment">
+    決済方法: {{ method }}<br>
+    税抜合計: {{ total_price }}円
+    消費税　: {{ (total_price * 0.1) | round(0) | int}}円
+    税込合計: {{ (total_price * 1.1) | round(0) | int }}円
+</div>
+
+<form action="/payment/complete" method="POST">
+    <button type="submit" class="btn-next">決済を完了する</button>
+</form>
+
+<a href="/payment_method" class="btn-back">戻る</a>
+{% endblock %}

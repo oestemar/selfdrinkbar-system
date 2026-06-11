@@ -178,6 +178,7 @@ def checkout():
     if request.method == 'GET':
         cart = session.get('cart', [])
         total_price = sum(item['price'] * item['quantity'] for item in cart)
+        total_price = int(total_price)  # 小数点以下切り捨て
         return render_template('checkout.html', cart=cart, total_price=total_price)
     else:
         # POST: 精算情報を確認
@@ -196,15 +197,25 @@ def payment_method():
 def payment():
     """決済処理（疑似）"""
     try:
-        payment_method = request.form.get('payment_method')
+        payment_method = request.form.get('method')
+        session['payment_method'] = payment_method        
+
+        if not payment_method:
+            return render_template('payment_method.html', total_price=0, error='決済方法を選択してください')
         
-        # ここで決済処理を実装（疑似処理）
-        # 実装例：
-        # - クレジットカード: カード情報の検証
-        # - 電子マネー: サービスとの連携
-        # - 銀行振込: 振込情報の生成
-        session['payment_method'] = payment_method
-        return redirect(url_for('payment_complete'))
+        if payment_method not in ['cash', 'card', 'paspo', 'qr']:
+            return render_template('payment_method.html', total_price=0, error='無効な決済方法です')
+
+        # 決済方法毎に各決済画面へ遷移
+        if payment_method == 'cash':
+            return render_template('payment_01_cash.html', method='現金', total_price=sum(item['price'] * item['quantity'] for item in session.get('cart', [])))        
+        if payment_method == 'card':
+            return render_template('payment_02_credit.html', method='クレジットカード', total_price=sum(item['price'] * item['quantity'] for item in session.get('cart', [])))
+        if payment_method == 'paspo':
+            return render_template('payment_03_paspo.html', method='pasmo', total_price=sum(item['price'] * item['quantity'] for item in session.get('cart', [])))
+        if payment_method == 'qr':
+            return render_template('payment_04_qr.html', method='QRコード', total_price=sum(item['price'] * item['quantity'] for item in session.get('cart', [])))
+
     except Exception as e:
         return render_template('error.html', message=str(e))
 
@@ -235,9 +246,9 @@ def payment_complete():
         # 注文詳細テーブルに挿入
         for item in cart:
             cursor.execute("""
-                INSERT INTO order_details (ordered_id, item_id, quantity, price)
-                VALUES (%s, %s, %s, %s)
-            """, (order_id, item['id'], item['quantity'], item['price']))
+                INSERT INTO order_details (ordered_id, item_id, name, price, quantity, subtotal)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (order_id, item['id'], item['name'], item['price'], item['quantity'], item['subtotal']))
         
         mysql.connection.commit()
         cursor.close()
@@ -246,14 +257,10 @@ def payment_complete():
         session.pop('cart', None)
         session.modified = True
         
-        return redirect(url_for('payment_success'))
+        return render_template('payment_complete.html')
     except Exception as e:
         mysql.connection.rollback()
         return render_template('error.html', message=str(e))
-
-@app.route('/payment/complete/success', methods=['GET'])
-def payment_success():
-    return render_template('payment_success.html')
 
 # ==================== 管理者ログイン ====================
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -355,7 +362,8 @@ def admin_register():
             
             mysql.connection.commit()
             cursor.close()
-            
+
+            flash("商品を登録しました")
             return redirect(url_for('admin_items'))
         except Exception as e:
             return render_template('admin/admin_error.html', message=str(e))
@@ -390,7 +398,8 @@ def admin_item_edit(item_id):
             
             mysql.connection.commit()
             cursor.close()
-            
+
+            flash("商品を更新しました")
             return redirect(url_for('admin_items'))
     except Exception as e:
         return render_template('admin/admin_error.html', message=str(e))
@@ -407,7 +416,8 @@ def admin_item_delete():
         cursor.execute("DELETE FROM items WHERE id = %s", (item_id,))
         mysql.connection.commit()
         cursor.close()
-        
+
+        flash("商品を削除しました")
         return redirect(url_for('admin_items'))
     except Exception as e:
         return render_template('admin/admin_error.html', message=str(e))
@@ -498,8 +508,8 @@ def admin_import_export():
 @admin_login_required
 def admin_search_history():
     """購入履歴検索"""
-    search = request.args.get('search', '')
-    date = request.args.get('date', '')
+    search = request.form.get('search', '')
+    date = request.form.get('date', '')
         
     try:
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -513,7 +523,8 @@ def admin_search_history():
                 d.item_id,
                 d.name AS name,
                 d.price AS price,
-                d.quantity
+                d.quantity AS quantity,
+                d.subtotal AS subtotal
             FROM orders o
             LEFT JOIN order_details d ON o.id = d.ordered_id
             WHERE 1=1

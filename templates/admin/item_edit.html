@@ -2,7 +2,7 @@
 {% block title %}商品編集{% endblock %}
 
 {% block content %}
-<h2>商品編集</h2>
+<h2>商品編集・削除</h2>
 
 <form action="/admin/item_edit/{{ item.id }}" method="POST">
     <label>商品名: <input type="text" name="name" value="{{ item.name }}" required></label><br>
