@@ -57,7 +57,7 @@ def menu_coffee():
         cursor.execute("SELECT * FROM items WHERE category = 'coffee'")
         items = cursor.fetchall()
         cursor.close()
-        return render_template('menu_coffee.html', items=items)
+        return render_template('menu_coffee.html', items=items, category="coffee", step="menu")
     except Exception as e:
         return render_template('error.html', message=str(e))
 
@@ -69,7 +69,7 @@ def menu_tea():
         cursor.execute("SELECT * FROM items WHERE category = 'tea'")
         items = cursor.fetchall()
         cursor.close()
-        return render_template('menu_tea.html', items=items)
+        return render_template('menu_tea.html', items=items, category="tea", step="menu")
     except Exception as e:
         return render_template('error.html', message=str(e))
 
@@ -81,7 +81,7 @@ def menu_green_tea():
         cursor.execute("SELECT * FROM items WHERE category = 'green_tea'")
         items = cursor.fetchall()
         cursor.close()
-        return render_template('menu_green_tea.html', items=items)
+        return render_template('menu_green_tea.html', items=items, category="green_tea", step="menu")
     except Exception as e:
         return render_template('error.html', message=str(e))
 
@@ -95,7 +95,7 @@ def menu_softdrink():
         cursor.execute("SELECT * FROM items WHERE category = 'softdrink'")
         items = cursor.fetchall()
         cursor.close()
-        return render_template('menu_softdrink.html', items=items)
+        return render_template('menu_softdrink.html', items=items, category="softdrink", step="menu")
     except Exception as e:
         return render_template('error.html', message=str(e))
 
@@ -106,7 +106,7 @@ def view_cart():
     """カート表示"""
     cart = session.get('cart', [])
     total_price = sum(item['price'] * item['quantity'] for item in cart)
-    return render_template('cart.html', cart=cart, total_price=total_price)
+    return render_template('cart.html', cart=cart, total_price=total_price, step="cart")
 
 
 @app.route('/cart/add', methods=['POST'])
@@ -126,7 +126,7 @@ def add_to_cart():
         for item in session['cart']:
             if str(item['id']) == str(item_id):
                 item['quantity'] += quantity
-                item['subtotal'] = item['price'] * item['quantity']
+                item['subtotal'] = item['price'] * item['quantity']   
                 session.modified = True
                 return jsonify({'success': True, 'cart_count': sum(i['quantity'] for i in session['cart'])})
         
@@ -179,7 +179,7 @@ def checkout():
         cart = session.get('cart', [])
         total_price = sum(item['price'] * item['quantity'] for item in cart)
         total_price = int(total_price)  # 小数点以下切り捨て
-        return render_template('checkout.html', cart=cart, total_price=total_price)
+        return render_template('checkout.html', cart=cart, total_price=total_price, step="checkout")
     else:
         # POST: 精算情報を確認
         return redirect(url_for('payment_method'))
@@ -190,7 +190,7 @@ def payment_method():
     """決済方法選択"""
     cart = session.get('cart', [])
     total_price = sum(item['price'] * item['quantity'] for item in cart)
-    return render_template('payment_method.html', total_price=total_price)
+    return render_template('payment_method.html', total_price=total_price, step="payment_method")
 
 
 @app.route('/payment', methods=['POST'])
@@ -208,13 +208,13 @@ def payment():
 
         # 決済方法毎に各決済画面へ遷移
         if payment_method == 'cash':
-            return render_template('payment_01_cash.html', method='現金', total_price=sum(item['price'] * item['quantity'] for item in session.get('cart', [])))        
+            return render_template('payment_01_cash.html', method='現金', total_price=sum(item['price'] * item['quantity'] for item in session.get('cart', [])), step="payment")        
         if payment_method == 'card':
-            return render_template('payment_02_credit.html', method='クレジットカード', total_price=sum(item['price'] * item['quantity'] for item in session.get('cart', [])))
+            return render_template('payment_02_credit.html', method='クレジットカード', total_price=sum(item['price'] * item['quantity'] for item in session.get('cart', [])), step="payment")
         if payment_method == 'paspo':
-            return render_template('payment_03_paspo.html', method='pasmo', total_price=sum(item['price'] * item['quantity'] for item in session.get('cart', [])))
+            return render_template('payment_03_paspo.html', method='pasmo', total_price=sum(item['price'] * item['quantity'] for item in session.get('cart', [])), step="payment")
         if payment_method == 'qr':
-            return render_template('payment_04_qr.html', method='QRコード', total_price=sum(item['price'] * item['quantity'] for item in session.get('cart', [])))
+            return render_template('payment_04_qr.html', method='QRコード', total_price=sum(item['price'] * item['quantity'] for item in session.get('cart', [])), step="payment")
 
     except Exception as e:
         return render_template('error.html', message=str(e))
@@ -257,7 +257,7 @@ def payment_complete():
         session.pop('cart', None)
         session.modified = True
         
-        return render_template('payment_complete.html')
+        return render_template('payment_complete.html', step="complete")
     except Exception as e:
         mysql.connection.rollback()
         return render_template('error.html', message=str(e))
@@ -267,7 +267,7 @@ def payment_complete():
 def admin_login():
     """管理者ログイン"""
     if request.method == 'GET':
-        return render_template('admin/login.html')
+        return render_template('admin/login.html', login_page=True)
     else:
         username = request.form.get('username')
         password = request.form.get('password')

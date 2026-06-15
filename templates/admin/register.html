@@ -2,23 +2,25 @@
 {% block title %}商品登録{% endblock %}
 
 {% block content %}
-<h2>商品登録</h2>
+<h2 class="text-center mt-2 mb-4">商品登録</h2>
 
-<form action="/admin/register" method="POST">
-    <label>商品名: <input type="text" name="name" required></label><br>
-    <label>価格: <input type="number" name="price" required></label><br>
-    <label>カテゴリ:
-        <select name="category">
+<div class="container col-md-3 mx-auto mt-2 mb-2">
+    <form action="/admin/register" method="POST">
+        <label class="text-start">商品名: </label><br>
+        <input type="text" class="form-control" name="name" required><br>
+        <label class="text-start">価格: </label><br>
+        <input type="number" class="form-control" name="price" required><br>
+        <label class="text-start">カテゴリ:</label><br>
+        <select name="category" class="form-control">
             <option value="coffee">コーヒー</option>
             <option value="tea">紅茶</option>
             <option value="green_tea">緑茶</option>
             <option value="softdrink">ソフトドリンク</option>
-        </select>
-    </label><br>
-    <label>商品説明: <textarea name="description"></textarea></label><br>
-    <button type="submit">登録</button>
-</form>
-<br><br>
-<a href="/admin/dashboard" class="menu_back">メニューに戻る</a>
-<a href="/admin/logout" class="logout">ログアウト</a>
+        </select><br>
+        <label class="text-start">商品説明: </label><br>
+        <textarea name="description" class="form-control"></textarea></label><br>
+        <button type="submit">登録</button>
+    </form>
+</div>
+
 {% endblock %}

@@ -2,7 +2,7 @@
 {% block title %}商品一覧{% endblock %}
 
 {% block content %}
-<h2>商品一覧</h2>
+<h2 class="text-center mb-4 mt-2">商品一覧</h2>
 {% with messages = get_flashed_messages() %}
     {% if messages %}
         <div class="flash-messages">
@@ -13,7 +13,7 @@
     {% endif %}
 {% endwith %}
 <!-- 検索フォーム -->
-<form action="/admin/items" method="POST">
+<form action="/admin/items" class="col-md-6 mx-auto mb-4" method="POST">
     <input type="text" name="search" placeholder="商品名で検索" value="{{ request.args.get('search', '') }}">
     
     <select name="category">
@@ -27,26 +27,35 @@
     <button type="submit">検索</button>
 </form>
 
-<table>
-    <tr><th>ID</th><th>商品名</th><th>価格</th><th>カテゴリ</th><th>操作</th></tr>
-    {% for item in items %}
-    <tr>
-        <td>{{ item.id }}</td>
-        <td>{{ item.name }}</td>
-        <td>{{ item.price }}</td>
-        <td>{{ item.category }}</td>
-        <td>{{ item.description }}</td>
-        <td>
-            <a href="/admin/item_edit/{{ item.id }}">編集</a>
-            <form action="/admin/item_delete" method="POST" style="display:inline;">
-                <input type="hidden" name="item_id" value="{{ item.id }}">
-                <button type="submit">削除</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
-<br><br>
-<a href="/admin/dashboard" class="menu_back">メニューに戻る</a>
-<a href="/admin/logout" class="logout">ログアウト</a>
+<div class="col-md-8 mx-auto">
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>商品名</th>
+            <th>価格</th>
+            <th>カテゴリ</th>
+            <th>説明</th>
+            <th>操作</th>
+        </tr>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.category }}</td>
+            <td>{{ item.description }}</td>
+            <td>
+                <a href="/admin/item_edit/{{ item.id }}">編集</a>
+                <form action="/admin/item_delete" method="POST" style="display:inline;">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                    <button type="submit">削除</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </thead>
+    </table>
+</div>
+
 {% endblock %}

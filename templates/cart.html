@@ -2,28 +2,47 @@
 {% block title %}カート | Self Drink Bar{% endblock %}
 
 {% block content %}
-<h2>カート</h2>
+
+<h2 class="text-white nav-tabs">カート ※ポートフォリオ用疑似</h2>
 
 <div class="cart-items">
-    {% for cart_item in cart %}
-        <div class="cart-item">
-            <div>商品番号：{{ cart_item.id }}</div>
-            <div>商品名：{{ cart_item.name }}</div>
-            <div>金額：{{ cart_item.price }}円</div>
-            <div>数量：{{ cart_item.quantity }}</div>
-            <div>小計：{{ cart_item.subtotal }}円</div>
-            <form action="/cart/remove" method="POST">
-                <input type="hidden" name="item_id" value="{{ cart_item.id }}">
-                <button type="submit">削除</button>
-            </form>
-        </div>
-    {% endfor %}
+    <div class="pay-operation-wrapper">
+        <table class="pay-operation-table">
+            <tr><th>商品番号</th><th>商品名</th><th>価格</th><th>数量</th><th>小計</th></tr>
+            {% for cart_item in cart %}
+            <tr>
+                <td>{{ cart_item.id }}</td>
+                <td>{{ cart_item.name }}</td>
+                <td>{{ cart_item.price }}</td>
+                <td>{{ cart_item.quantity }}</td>
+                <td>{{ cart_item.subtotal }}</td>
+                <td>
+                    <form action="/cart/remove" method="POST">
+                        <input type="hidden" name="item_id" value="{{ cart_item.id }}">
+                        <button type="submit" class="btn btn-primary pay-operation-delete">削除</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+        <table class="pay-operation-total-table">
+            <tr>
+                <td>税抜合計</td>
+                <td>{{ total_price }}</td>
+            </tr>
+            <tr>
+                <td>消費税</td>
+                <td>{{ (total_price * 0.1) | round(0) | int }}</td>
+            </tr>
+            <tr>
+                <td>税込合計</td>
+                <td>{{ (total_price * 1.1) | round(0) | int }}</td>
+            </tr>
+        </table>
+    </div>
 </div>
-
-<div class="cart-total">
-    合計: {{ total_price }}円
+<div class="pay-operation-actions">
+    <a href="/menu/coffee" class="btn btn-primary btn-back">メニューに戻る</a>
+    <a href="/checkout" class="btn btn-primary btn-next">精算へ進む</a>
 </div>
-
-<a href="/menu/coffee" class="btn-back">メニューに戻る</a>
-<a href="/checkout" class="btn-next">精算へ進む</a>
 {% endblock %}

@@ -1,39 +1,41 @@
 {% extends "admin/admin_base.html" %}
 {% block title %}購入履歴検索{% endblock %}
 {% block content %}
-<h2>購入履歴検索</h2>
+<h2 class="text-center mt-2 mb-4">購入履歴検索</h2>
 
-<form action="/admin/search_history" method="POST">
+<form action="/admin/search_history" class="col-md-6 mx-auto mb-4" method="POST">
     <input type="text" name="search" placeholder="注文ID / 商品名 / 商品ID" value="{{ search }}">
     <input type="date" name="date" value="{{ date }}">
     <button type="submit">検索</button>
 </form>
 
-<table>
-    <tr>
-        <th>注文ID</th>
-        <th>日時</th>
-        <th>商品名</th>
-        <th>決済方法</th>
-        <th>価格</th>
-        <th>数量</th>
-        <th>小計</th>
-        <th>税抜合計</th>
-    </tr>
-    {% for row in orders %}
-    <tr>
-        <td>{{ row.id }}</td>
-        <td>{{ row.purchase_datetime }}</td>
-        <td>{{ row.name }}</td>
-        <td>{{ row.payment_method }}</td>
-        <td>{{ row.price }}</td>
-        <td>{{ row.quantity }}</td>
-        <td>{{ row.subtotal }}</td>
-        <td>{{ row.total }}</td>
-    </tr>
-    {% endfor %}
-</table>
-<br><br>
-<a href="/admin/dashboard" class="menu_back">メニューに戻る</a>
-<a href="/admin/logout" class="logout">ログアウト</a>
+<div class="col-md-8 mx-auto">
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>注文ID</th>
+                <th>日時</th>
+                <th>商品名</th>
+                <th>決済方法</th>
+                <th>価格</th>
+                <th>数量</th>
+                <th>小計</th>
+                <th>税抜合計</th>
+            </tr>
+            {% for row in orders %}
+            <tr>
+                <td>{{ row.id }}</td>
+                <td>{{ row.purchase_datetime }}</td>
+                <td>{{ row.name }}</td>
+                <td>{{ row.payment_method }}</td>
+                <td>{{ row.price }}</td>
+                <td>{{ row.quantity }}</td>
+                <td>{{ row.subtotal }}</td>
+                <td>{{ row.total }}</td>
+            </tr>
+            {% endfor %}
+        </thead>
+    </table>
+</div>
+
 {% endblock %}
