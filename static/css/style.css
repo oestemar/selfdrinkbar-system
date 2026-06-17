@@ -1,0 +1,182 @@
+.circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #e9e5c7;
+    margin: 0 auto 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+.circle.active{
+    background-color: #696113;
+    color: #fff;
+    font-weight: bold;
+}
+
+.label {
+    font-size: 0.9rem;
+}
+
+main {
+    background-color: #696113;
+    padding: 0px;
+    min-height: 80vh;
+}
+
+.nav-tabs {
+    background-color: #24210685; /* 好きな水色に変更可 */
+    padding-top: 20px;
+    padding-bottom: 0;
+}
+
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 0;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #696113 !important;
+    border: 2px solid #696013d0 !important;
+    border-bottom: none !important;
+    border-radius: 8px 8px 0 0 !important;
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.08) !important;
+    color: #fff !important;
+}
+
+.nav-tabs .nav-link {
+    background-color: #e9e5c7;
+    border: 2px solid transparent;
+    border-radius: 8px 8px 0 0;
+    padding: 10px 20px;
+    margin-right: 5px;
+    color: #0c0c0c;
+    transition: all 0.3s ease;
+}
+
+.text-white {
+    color: #fff;
+    text-align: center;
+    padding-top: 20px; 
+}
+
+.comment {
+    font-size: 16px;
+    color: #fff;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.error {
+    font-size: 16px;
+    color: #fff;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.add-to-cart {
+    background-color: #696113;
+    color: #fff;
+}
+
+.add-to-cart:hover {
+    background-color: #24210685;
+    color: #fff;    
+}
+
+.pay-operation-wrapper {
+    width: 50%;
+    max-width: 800px;          /* 中央の幅 */
+    margin: 40px auto;         /* 中央寄せ */
+    background-color: #fff; /* タブと同系色の背景 */
+    padding: 30px;             /* 内側余白 */
+    border-radius: 12px;       /* 角丸 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2); /* 立体感 */
+}
+
+.pay-operation-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.pay-operation-table tr {
+    border-bottom: 1px solid #24210685;
+}
+
+.pay-operation-delete {
+    background-color: #696113;
+    color: #fff;
+}
+
+.pay-operation-delete:hover {
+    background-color: #24210685;
+    color: #fff;
+}
+
+.card-image {
+    width: 50%;
+    text-align: center;
+    margin: 0 auto; /* 中央寄せ */
+    border: 1px solid #24210685;
+    border-radius: 8px;
+}
+
+.ic-reader {
+    width: 60%;
+    text-align: center;
+    margin: 0 auto; /* 中央寄せ */
+}
+
+.qr-image {
+    width: 60%;
+    text-align: center;
+    margin: 0 auto; /* 中央寄せ */
+}
+
+.pay-operation-total-table {
+    text-align: right;
+    margin: 0 auto; /* 中央寄せ */
+    width: 50%;
+}
+
+.pay-operation-total-table tr {
+    border-bottom: 1px solid #24210685;
+}
+
+.pay-operation-actions {
+    display: flex;                     /* 横並びにする */
+    justify-content: space-between;    /* 左右端に配置 */
+    align-items: center;               /* 縦位置を揃える */
+    width: 50%;/* wrapper と同じ幅に合わせる */
+    max-width: 800px;                  /* 上限幅 */
+    margin: 20px auto;                 /* 中央寄せ */
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.btn-back {
+    background-color: #696113;
+    color: #fff;
+}
+
+.btn-back:hover {
+    background-color: #24210685;
+    color: #fff;
+}
+
+.btn-next {
+    background-color: #696113;
+    color: #fff;
+}
+
+.btn-next:hover {
+    background-color: #24210685;
+    color: #fff;
+}

@@ -1,0 +1,35 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}管理者メニュー{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <div class="row">
+        <div class="col-md-4 mx-auto text-start">
+            <h2 class="container text-center mb-4 mt-2">管理者メニュー</h2>
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <i class="bi bi-circle-fill me-2"></i>
+                    <a href="/admin/items" class="text-dark text-decoration-none">商品一覧</a>
+                </li>
+                <li class="list-group-item">
+                    <i class="bi bi-circle-fill me-2"></i>
+                    <a href="/admin/register" class="text-dark text-decoration-none">商品登録</a>
+                </li>
+                <li class="list-group-item">
+                    <i class="bi bi-circle-fill me-2"></i>
+                    <a href="/admin/import_export" class="text-dark text-decoration-none">CSV インポート / エクスポート</a>
+                </li>
+                <li class="list-group-item">
+                    <i class="bi bi-circle-fill me-2"></i>
+                    <a href="/admin/search_history" class="text-dark text-decoration-none">購入履歴検索</a>
+                </li>
+                <li class="list-group-item">
+                    <i class="bi bi-circle-fill me-2"></i>
+                    <a href="/admin/password" class="text-dark text-decoration-none">パスワード変更</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

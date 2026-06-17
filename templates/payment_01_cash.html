@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}決済 | Self Drink Bar{% endblock %}
+
+{% block content %} 
+<h2 class="text-white nav-tabs">決済　※ポートフォリオ用疑似</h2>
+<p class="text-white comment">現金決済（疑似）を選択しました。</p>
+
+<div class="payment">
+    <div class="pay-operation-wrapper">
+        <table class="pay-operation-total-table">
+            <tr>
+                <td>税抜合計</td>
+                <td>{{ total_price }}</td>
+            </tr>
+            <tr>
+                <td>消費税</td>
+                <td>{{ (total_price * 0.1) | round(0) | int }}</td>
+            </tr>
+            <tr>
+                <td>税込合計</td>
+                <td>{{ (total_price * 1.1) | round(0) | int }}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="pay-operation-actions">
+    <a href="/payment_method" class="btn btn-primary btn-back">決済方法選択に戻る</a>
+    <form action="/payment/complete" method="POST">
+        <button type="submit" class="btn btn-primary btn-next">決済を完了する</button>
+    </form>
+</div
+{% endblock %}

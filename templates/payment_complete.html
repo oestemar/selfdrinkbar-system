@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}完了 | Self Drink Bar{% endblock %}
+
+{% block content %} 
+
+<p class="text-white comment">決済が完了しました。<span id="count">5</span>秒後にメニューへ戻ります。</p>
+
+<script>
+    let count = 5;
+    const counter = document.getElementById("count");
+
+    const timer = setInterval(() => {
+        count--;
+        counter.textContent = count;
+
+        if (count <= 0) {
+            clearInterval(timer);
+            window.location.href = "{{ url_for('menu_coffee') }}";  // メニュー画面へ遷移
+        }
+    }, 1000);
+</script>
+
+{% endblock %}

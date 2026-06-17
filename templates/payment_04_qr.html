@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}決済 | Self Drink Bar{% endblock %}
+
+{% block content %}
+<h2 class="text-white nav-tabs">決済　※ポートフォリオ用疑似</h2>
+<p class="text-white comment">QRコード決済（疑似）を選択しました。</p>
+
+<div class="payment">
+    <div class="pay-operation-wrapper">
+        <div class="qr-box">
+            <p>QRコードを読み取ってください。</p>
+            <p>※ポートフォリオ用の疑似決済です。</p>
+
+            <!-- QRコード画像（自作 or フリー素材） -->
+            <div class="qr-image">
+                <img src="/static/img/qr_sample.png" alt="QRコード" width="200">
+            </div>
+
+            <p id="status">待機中…</p>
+        </div>
+    </div>
+</div>
+<!-- 自動で決済完了へ送信 -->
+<form id="autoForm" action="/payment/complete" method="POST">
+    <input type="hidden" name="qr_status" value="success">
+</form>
+
+<script>
+    // 読み取り演出
+    setTimeout(() => {
+        document.getElementById("status").textContent = "読み取り中…";
+    }, 6000);
+
+    // 決済処理へ自動遷移
+    setTimeout(() => {
+        document.getElementById("status").textContent = "決済処理中…";
+        document.getElementById("autoForm").submit();
+    }, 6000);
+</script>
+
+<form action="/payment/complete" method="POST">
+    <button type="submit" class="btn-next">決済を完了する</button>
+</form>
+
+{% endblock %}

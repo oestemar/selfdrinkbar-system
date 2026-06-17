@@ -1,0 +1,5 @@
+Flask==2.3.0
+Flask-MySQLdb==1.0.1
+gunicorn=22.0.0
+MySQLdb-python==1.2.5
+python-dotenv==1.0.0

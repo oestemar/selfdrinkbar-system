@@ -1,0 +1,14 @@
+<!-- templates/admin/error.html -->
+{% extends "admin/admin_base.html" %}
+{% block title %}エラー{% endblock %}
+
+{% block content %}
+<h2 class="text-center mb-4 mt-2">エラーが発生しました</h2>
+
+{% if message %}
+    <div class="error text-center mb-4 mt-2">{{ message }}</div>
+{% endif %}
+{% if message %}
+    <div class="error text-center mb-4 mt-2">{{ error }}</div>
+{% endif %}
+{% endblock %}

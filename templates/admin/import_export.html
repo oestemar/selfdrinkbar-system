@@ -1,0 +1,39 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}CSV インポート / エクスポート{% endblock %}
+
+{% block content %}
+<h2 class="text-center mt-2 mb-4">全メニュー差し替え</h2>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="flash-messages text-center">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<div class="container mt-2 mb-2">
+
+    <form action="/admin/import_export" 
+    class="col-md-4 mx-auto mb-4 p-3 border rounded" method="POST" enctype="multipart/form-data">
+        <div class="mb-3 text-start">
+            <label class="form-label">インポート（メニュー差し替え）</label>
+            <input type="hidden" name="action" value="import">
+            <input type="file" class="form-control" name="file" required>
+        </div>
+        <button type="submit" class="btn btn-sm btn-secondary w-100">メニュー（CSV）をインポート</button>
+    </form>
+
+    <form action="/admin/import_export" 
+     class="col-md-4 mx-auto mb-4 p-3 border rounded" method="POST">
+        <div class="mb-3 text-start">
+            <label class="text-start">エクスポート（メニューのバックアップ）</label>
+            <input type="hidden" class="form-control" name="action" value="export">
+        </div>
+        <button type="submit" class="btn btn-sm btn-secondary w-100">メニュー（CSV）をエクスポート</button>
+    </form>
+</div>
+
+{% endblock %}
