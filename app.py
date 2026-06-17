@@ -1,3 +1,5 @@
+print("=== Flask app starting ===")
+
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
@@ -12,7 +14,16 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = app.config['SECRET_KEY']
 
-mysql = MySQL(app)
+print("MYSQL_HOST:", Config.MYSQL_HOST)
+print("MYSQL_PORT:", Config.MYSQL_PORT)
+print("MYSQL_USER:", Config.MYSQL_USER)
+print("MYSQL_DB:", Config.MYSQL_DB)
+
+try:
+    mysql = MySQL(app)
+    print("=== MySQL initialized successfully ===")
+except Exception as e:
+    print("=== MySQL init error ===", e)
 
 # ==================== ユーティリティ関数 ====================
 def hash_password(password):
