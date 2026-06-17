@@ -54,7 +54,7 @@ def admin_only(f):
 # ==================== メニュー関連ルート ====================
 @app.route('/')
 def index():
-    return redirect('/menu/coffee')
+    return redirect(url_for('menu_coffee'))
 
 @app.context_processor
 def inject_cart_count():
