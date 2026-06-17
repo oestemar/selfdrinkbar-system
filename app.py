@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+import pymysql
 from flask_mysqldb import MySQL
+pymysql.install_as_MySQLdb()
 import MySQLdb.cursors
 from datetime import datetime
 from config import Config
