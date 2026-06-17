@@ -1,9 +1,9 @@
-print("=== Flask app starting ===")
+# print("=== Flask app starting ===")
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 import pymysql
-from flask_mysqldb import MySQL
 pymysql.install_as_MySQLdb()
+from flask_mysqldb import MySQL
 import MySQLdb.cursors
 from datetime import datetime
 from config import Config
@@ -16,10 +16,10 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = app.config['SECRET_KEY']
 
-print("MYSQL_HOST:", Config.MYSQL_HOST)
-print("MYSQL_PORT:", Config.MYSQL_PORT)
-print("MYSQL_USER:", Config.MYSQL_USER)
-print("MYSQL_DB:", Config.MYSQL_DB)
+# print("MYSQL_HOST:", Config.MYSQL_HOST)
+# print("MYSQL_PORT:", Config.MYSQL_PORT)
+# print("MYSQL_USER:", Config.MYSQL_USER)
+# print("MYSQL_DB:", Config.MYSQL_DB)
 
 try:
     mysql = MySQL(app)
