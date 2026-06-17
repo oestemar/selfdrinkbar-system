@@ -1,33 +1,3 @@
-.step-bar ul {
-    width: 60%;
-    display: flex;
-    justify-content: space-between;
-    list-style: none;
-    padding: 0;
-    margin: 0 auto;
-}
-
-.step-bar li {
-    flex: 1;
-    text-align: center;
-    position: relative;
-}
-
-.step-bar li::after {
-    content: "→";              /* ← ここを ">" や "—" に変えればOK */
-    position: absolute;
-    top: 12px;                 /* 縦位置の調整 */
-    right: -20px;              /* 丸と丸の間の距離 */
-    font-size: 16px;
-    color: #696113;
-    align-items: center;
-}
-
-/* 最後の項目だけ矢印を消す */
-.step-bar li:last-child::after {
-    content: "";
-}
-
 .circle {
     width: 30px;
     height: 30px;

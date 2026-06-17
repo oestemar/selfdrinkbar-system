@@ -13,7 +13,7 @@
 
 - **Backend**: Python 3.x + Flask
 - **Database**: MySQL
-- **Frontend**: HTML/CSS/JavaScript（テンプレートは別途作成）
+- **Frontend**: HTML/CSS/JavaScript（テンプレートは別途作成）,Bootstrap
 
 ## ディレクトリ構造
 
@@ -22,10 +22,11 @@ selfdrinkbar-system/
 ├── app.py  # メインアプリケーション
 ├── requirements.txt    # Python依存パッケージ
 ├── .env.example    # 環境変数テンプレート
+├── config.py   # DBの環境変数取得コード
 ├── database_schema.sql # DBスキーマ定義
 ├── README.md   # このファイル
 ├── templates/  # HTMLテンプレート（別途作成）
-│   ├── index.html
+│   ├── base.html
 │   ├── menu_coffee.html
 │   ├── menu_tea.html
 │   ├── menu_green_tea.html
@@ -33,21 +34,36 @@ selfdrinkbar-system/
 │   ├── cart.html
 │   ├── checkout.html
 │   ├── payment_method.html
-│   ├── payment.html
-│   ├── admin_login.html
-│   ├── admin_dashboard.html
-│   ├── admin_items.html
-│   ├── admin_register.html
-│   ├── admin_item_edit.html
-│   ├── admin_import_export.html
-│   ├── admin_search_history.html
-│   ├── admin_password.html
-│   └── error.html
-├── static/ # CSSやJavaScript（別途作成）
+│   ├── payment_01_cash.html
+│   ├── payment_02_credit.html
+│   ├── payment_03_paspo.html
+│   ├── payment_04_qr.html
+│   ├── payment_complete.html
+│   ├── error.html
+│   └── admin
+│       ├── admin_base.html
+│       ├── dashboard.html
+│       ├── items_edit.html
+│       ├── items.html
+│       ├── register.html
+│       ├── item_edit.html
+│       ├── import_export.html
+│       ├── search_history.html
+│       ├── password.html
+│       └── admin_error.html
+├── static/
 │   ├── css/
 │   │   └── style.css
+│   ├── img/
+│   │   ├── ic_reader.png
+│   │   └── qr_sample.png
 │   └── js/
+│   │   └── cart.js
 └── docs/   # ドキュメント
+    ├── DB詳細設計.xlsx
+    ├── 画面一覧.xlsx
+    ├── システム仕様書.docx
+    ├── ER図.png    
     └── hash値設定SQL.txt
 ```
 
@@ -97,27 +113,41 @@ cp .env.example .env
 # - MYSQL_PASSWORD: MySQLパスワード
 # - MYSQL_DB: データベース名（デフォルト: selfdrinkbar）
 # - SECRET_KEY: Flask秘密キー（本番環境では安全なキーに変更）
+# - FLASK_APP=app.py
+# - FLASK_ENV=development
+# - FLASK_DEBUG=True
 ```
 
-### 4. 管理者ユーザーの作成
+### 4. DBのadminsテーブルに管理者アカウントを登録する（ローカルにシステム環境を構築する場合に必要）
 
-```bash
-# MySQLで管理者ユーザーを作成（パスワードはハッシュ化済み）
+```bashプロンプトのプロジェクトを格納したフォルダ下にて下記を実行
+
+# MySQL にログイン
 mysql -u root -p selfdrinkbar
-INSERT INTO admins (username, password) VALUES ('admin', 'ハッシュ化されたパスワード');
+
+# 管理者アカウントを作成（パスワードは必ずハッシュ化済みの値を入れる）
+INSERT INTO admins (username, role, password_hash, created_at, updated_at)
+VALUES ('admin', 'admin', 'ここにハッシュ化されたパスワード', NOW(), NOW());
+
 ```
 
 > パスワードのハッシュ化は SHA-256 を使用しています。  
-> app.py の `hash_password()` 関数で生成できます。
+> 'ハッシュ値'のところに記述するハッシュ値は下記で生成できます。
+from werkzeug.security import generate_password_hash
+print(generate_password_hash("好きなパスワード"))
+
 
 ### 5. アプリケーション起動
 
 ```bash
-# Flask開発サーバー起動
-python app.py
+# Flask開発サーバー起動　※プロジェクトフォルダ内で下記コマンド実行
+flask run
 
 # ブラウザでアクセス: http://localhost:5000
 ```
+
+### 6. CSVインポート（商品一覧の取り込み）
+- 管理者ログイン後、メニューのCSVインポートで/data/items.csvを取り込む 
 
 ## ルーティング一覧
 
@@ -168,23 +198,14 @@ session['admin_id'] = admin_id
 ```
 
 ### パスワードハッシュ化
-SHA-256 でパスワードをハッシュ化（本番環境では bcrypt 等の使用を推奨）
+SHA-256 でパスワードをハッシュ化
+管理者ログイン画面で入力したパスワードは下記関数により内部でハッシュ化されて使用されます。DBに登録するとき登録しておいたハッシュ値と照合し、ログイン認証します。
 
 ```python
 def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+    """パスワードを安全にハッシュ化（PBKDF2-SHA256）"""
+    return generate_password_hash(password)
 ```
-
-## 今後の改善案
-
-- [ ] フロントエンドテンプレートの実装
-- [ ] ユーザー登録機能の追加
-- [ ] より堅牢なパスワード管理（bcrypt 等）
-- [ ] 実際の決済ゲートウェイ連携
-- [ ] レスポンシブデザイン対応
-- [ ] ユニットテストの追加
-- [ ] API エンドポイントの RESTful 化
-- [ ] ドキュメントの充実
 
 ## ライセンス
 
