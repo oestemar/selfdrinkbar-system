@@ -39,8 +39,11 @@ def admin_login_required(f):
 def admin_only(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if session.get('role') != 'admin':
-            return render_template('admin/admin_error.html', message="この操作は管理者のみ可能です")
+        if session.get('role') == 'demo' and request.method == 'POST':
+            return render_template(
+                'admin/admin_error.html', 
+                message='デモアカウントは閲覧のみ可能です（操作は出来ません）'
+                )
         return f(*args, **kwargs)
     return wrapper
 
