@@ -44,7 +44,6 @@ CREATE TABLE IF NOT EXISTS order_details (
     subtotal INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ordered_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (item_id) REFERENCES items(id),
     INDEX idx_order_id (ordered_id)
 );
 
