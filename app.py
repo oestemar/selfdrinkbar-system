@@ -47,7 +47,6 @@ def admin_only(f):
 # 管理者アカウント登録（一回だけ）
 @app.route('/init_admins')
 def init_admins():
-    from werkzeug.security import generate_password_hash
     from app import mysql  # もし必要なら
 
     cursor = mysql.connection.cursor()
@@ -60,14 +59,14 @@ def init_admins():
 
     # INSERT
     cursor.execute("""
-        INSERT INTO admins (username, role, password_hash)
-        VALUES (%s, %s, %s)
-    """, ('demo', 'demo', 	'scrypt:32768:8:1$WRfRG37kry4bNlz3$d5ff0e0091cecd2bd97f1f11309c3f5116eb017750972b8bc107de7b05102eb4412313ecc5c46cd40c63bec46241ffceb4ba22c98577e67a3f4dea17655912dd'
+        INSERT INTO admins (username, role, created_at, updated_at, password_hash)
+        VALUES (%s, %s, NOW(), NOW(), %s)
+    """, ('demo', 'demo', 'scrypt:32768:8:1$WRfRG37kry4bNlz3$d5ff0e0091cecd2bd97f1f11309c3f5116eb017750972b8bc107de7b05102eb4412313ecc5c46cd40c63bec46241ffceb4ba22c98577e67a3f4dea17655912dd'
 ))
 
     cursor.execute("""
-        INSERT INTO admins (username, role, password_hash)
-        VALUES (%s, %s, %s)
+        INSERT INTO admins (username, role, created_at, updated_at, password_hash)
+        VALUES (%s, %s, NOW(), NOW(), %s)
     """, ('admin', 'admin', 'scrypt:32768:8:1$GngpvBvxaKZhgDTY$d9302c1c1d2ba7373b9420127f3444b1dcecb359991c8a48425b0c11a7753015c2dcd2fc579f0f04f95b0e223679d192e8320fc7195d619a014751efb42360c0'
 ))
 
