@@ -1,5 +1,3 @@
-# print("=== Flask app starting ===")
-
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 import pymysql
 pymysql.install_as_MySQLdb()
@@ -15,11 +13,6 @@ import csv
 app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = app.config['SECRET_KEY']
-
-# print("MYSQL_HOST:", Config.MYSQL_HOST)
-# print("MYSQL_PORT:", Config.MYSQL_PORT)
-# print("MYSQL_USER:", Config.MYSQL_USER)
-# print("MYSQL_DB:", Config.MYSQL_DB)
 
 try:
     mysql = MySQL(app)
@@ -50,6 +43,38 @@ def admin_only(f):
             return render_template('admin/admin_error.html', message="この操作は管理者のみ可能です")
         return f(*args, **kwargs)
     return wrapper
+
+# 管理者アカウント登録（一回だけ）
+@app.route('/init_admins')
+def init_admins():
+    from werkzeug.security import generate_password_hash
+    from app import mysql  # もし必要なら
+
+    cursor = mysql.connection.cursor()
+
+    # すでに admin が存在するなら実行しない
+    cursor.execute("SELECT * FROM admins WHERE username = 'admin'")
+    existing = cursor.fetchone()
+    if existing:
+        return "Admins already created", 403
+
+    # INSERT
+    cursor.execute("""
+        INSERT INTO admins (username, role, password_hash)
+        VALUES (%s, %s, %s)
+    """, ('demo', 'demo', 	'scrypt:32768:8:1$WRfRG37kry4bNlz3$d5ff0e0091cecd2bd97f1f11309c3f5116eb017750972b8bc107de7b05102eb4412313ecc5c46cd40c63bec46241ffceb4ba22c98577e67a3f4dea17655912dd'
+))
+
+    cursor.execute("""
+        INSERT INTO admins (username, role, password_hash)
+        VALUES (%s, %s, %s)
+    """, ('admin', 'admin', 'scrypt:32768:8:1$GngpvBvxaKZhgDTY$d9302c1c1d2ba7373b9420127f3444b1dcecb359991c8a48425b0c11a7753015c2dcd2fc579f0f04f95b0e223679d192e8320fc7195d619a014751efb42360c0'
+))
+
+    mysql.connection.commit()
+    cursor.close()
+
+    return "Initial admins (demo, admin) created"
 
 # ==================== メニュー関連ルート ====================
 @app.route('/')
