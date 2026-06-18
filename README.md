@@ -9,6 +9,10 @@
 - **決済機能**: 複数の決済方法に対応（疑似実装）
 - **管理者機能**: 商品の登録・編集・削除、CSVインポート/エクスポート、購入履歴管理、パスワード変更
 
+## [テスト手順書](/docs/test_document.md)
+
+テスト手順書は上記リンクをご参照ください
+
 ## 技術スタック
 
 - **Backend**: Python 3.x + Flask
@@ -120,22 +124,45 @@ cp .env.example .env
 
 ### 4. DBのadminsテーブルに管理者アカウントを登録する（ローカルにシステム環境を構築する場合に必要）
 
-```bashプロンプトのプロジェクトを格納したフォルダ下にて下記を実行
+```app.pyに下記コードがあるため、一度だけ自動で実行されます。
 
-# MySQL にログイン
-mysql -u root -p selfdrinkbar
+# 管理者アカウント登録（一回だけ）
+@app.route('/init_admins')
+def init_admins():
+    from app import mysql  # もし必要なら
 
-# 管理者アカウントを作成（パスワードは必ずハッシュ化済みの値を入れる）
-INSERT INTO admins (username, role, password_hash, created_at, updated_at)
-VALUES ('admin', 'admin', 'ここにハッシュ化されたパスワード', NOW(), NOW());
+    cursor = mysql.connection.cursor()
+
+    # すでに admin が存在するなら実行しない
+    cursor.execute("SELECT * FROM admins WHERE username = 'admin'")
+    existing = cursor.fetchone()
+    if existing:
+        return "Admins already created", 403
+
+    # INSERT
+    cursor.execute("""
+        INSERT INTO admins (username, role, created_at, updated_at, password_hash)
+        VALUES (%s, %s, NOW(), NOW(), %s)
+    """, ('demo', 'demo', '自分で決めたパスワードのハッシュ値'
+))
+
+    cursor.execute("""
+        INSERT INTO admins (username, role, created_at, updated_at, password_hash)
+        VALUES (%s, %s, NOW(), NOW(), %s)
+    """, ('admin', 'admin', '自分で決めたパスワードのハッシュ値'
+))
+
+    mysql.connection.commit()
+    cursor.close()
+
+    return "Initial admins (demo, admin) created"
 
 ```
-
+#### ハッシュ値の生成方法
 > パスワードのハッシュ化は SHA-256 を使用しています。  
 > 'ハッシュ値'のところに記述するハッシュ値は下記で生成できます。
 from werkzeug.security import generate_password_hash
 print(generate_password_hash("好きなパスワード"))
-
 
 ### 5. アプリケーション起動
 
@@ -147,7 +174,7 @@ flask run
 ```
 
 ### 6. CSVインポート（商品一覧の取り込み）
-- 管理者ログイン後、メニューのCSVインポートで/data/items.csvを取り込む 
+- 管理者ログイン後、メニューのCSVインポートで/data/items.csvを取り込む ※CSVはdataフォルダに置いてあります。
 
 ## ルーティング一覧
 
