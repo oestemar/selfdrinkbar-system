@@ -17,7 +17,7 @@
 
 - **Backend**: Python 3.x + Flask
 - **Database**: MySQL
-- **Frontend**: HTML/CSS/JavaScript（テンプレートは別途作成）,Bootstrap
+- **Frontend**: HTML/CSS/JavaScript,Bootstrap
 
 ## ディレクトリ構造
 
@@ -29,7 +29,7 @@ selfdrinkbar-system/
 ├── config.py   # DBの環境変数取得コード
 ├── database_schema.sql # DBスキーマ定義
 ├── README.md   # このファイル
-├── templates/  # HTMLテンプレート（別途作成）
+├── templates/ 
 │   ├── base.html
 │   ├── menu_coffee.html
 │   ├── menu_tea.html
@@ -208,12 +208,13 @@ flask run
 
 ## 使用技術の詳細
 
-### Flask-MySQLdb
-MySQL との接続を管理するための Flask 拡張機能
+### Flask-MySQLdbとpymysql
+MySQL との接続を管理するための Flask 拡張機能。基本はMySQLdbを使用していますが、そのままだとRailwayでDBに接続不可なため、app.pyの下記コードでpymysqlに置き換えています。
 
-```python
+```app.py
+import pymysql
+pymysql.install_as_MySQLdb()
 from flask_mysqldb import MySQL
-mysql = MySQL(app)
 ```
 
 ### セッション管理
@@ -240,7 +241,7 @@ def hash_password(password):
 
 ## 注意事項
 
-- このコードは開発・学習目的のための **たたき台** です
+- このコードはポートフォリオのためのものです
 - 本番環境での使用にはセキュリティの強化が必要です
 - パスワード管理は `bcrypt` 等のより安全な方式を推奨します
 - 決済機能は疑似実装のため、実際の運用には決済ゲートウェイの連携が必須です

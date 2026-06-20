@@ -1,4 +1,4 @@
-# Self Drink Bar System – テスト手順書（たたき台）
+# Self Drink Bar System – テスト手順書
 ## 1. テスト概要
 本テスト手順書は、Self Drink Bar System の利用フローおよび管理者画面の閲覧機能を確認するためのものです。
 一般ユーザーはメニュー選択〜決済までの流れを、管理者は demo アカウントで管理画面の閲覧を行います。
